@@ -1,4 +1,4 @@
-# lumina_microsoft_hackathon
+# Lumina_Microsoft_Hackathon
 # CareerDisha: Your AI Career Navigator 🚀
 
 CareerDisha is an AI-powered career recommendation system that helps users find the best job opportunities based on their skills, interests, and education. It uses **Flask**, **Azure OpenAI**, and **Pandas** to analyze resumes and suggest relevant career paths.
