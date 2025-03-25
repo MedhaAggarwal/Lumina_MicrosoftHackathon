@@ -13,7 +13,7 @@ CareerDisha is an AI-powered career recommendation system that helps users find 
 1. Clone the Repository  
     ```bash
       git clone https://github.com/yourusername/Lumina_MicrosoftHackathon.git
-      cd CareerDisha
+      cd Lumina_MicrosoftHackathon
 2. Set up your virtual environment, and then install the required packages from requiremnets.txt file using the command:
    ```bash
    pip install -r requiremenets.txt
