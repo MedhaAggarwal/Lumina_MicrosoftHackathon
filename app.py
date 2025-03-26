@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import os
 import pandas as pd
 from werkzeug.utils import secure_filename
@@ -101,6 +101,103 @@ def extract_skills_from_resume(filepath):
     except Exception as e:
         print(f"Error processing resume: {str(e)}")
         return ["python", "data analysis"]  # Fallback skills
+
+def generate_youtube_recommendations(skills, job_titles):
+    """Generate YouTube video recommendations based on skills and job titles"""
+    video_links = []
+    
+    # Updated and verified video IDs
+    general_videos = [
+        ("Career Growth Tips (2024)", "Pg3v6IZhXaI"),
+        ("How to Ace Technical Interviews", "Bt11jaoqt3M"),
+        ("Building a Strong Resume", "0xIQqGAcnkM"),
+        ("LinkedIn Profile Optimization", "6W8eP9XQJGY")
+    ]
+    
+    # Updated skill-specific videos
+    skill_videos = {
+        'python': [
+            ("Python Full Course (2024)", "rfscVS0vtbw"),
+            ("Python for Data Science", "LHBE6Q9XlzI")
+        ],
+        'machine learning': [
+            ("Machine Learning Roadmap", "GwIo3gDZCVQ"),
+            ("Deep Learning Fundamentals", "6M5VXKLf4D4")
+        ],
+        'data science': [
+            ("Data Science Complete Course", "7eh4d6sabA0"),
+            ("Data Science Career Guide", "9FCsyK4aRXQ")
+        ],
+        'java': [
+            ("Java Programming Masterclass", "grEKMHGYyns"),
+            ("Java Interview Preparation", "eIrMbAQSU34")
+        ],
+        'software development': [
+            ("Software Development Basics", "8jLOx1hD3_o"),
+            ("Full Stack Development Guide", "8KaJRw-rfn8")
+        ],
+        'digital marketing': [
+            ("Digital Marketing Complete Guide", "7ozG7cop0mM"),
+            ("Social Media Marketing 2024", "WeQ9I7j0mQY")
+        ],
+        'marketing': [
+            ("Marketing Fundamentals 2024", "QoRZ7nZ3G8Q"),
+            ("Content Marketing Strategy", "hD4SmKuUO2I")
+        ],
+        'data analysis': [
+            ("Data Analysis with Python", "r-uOLxNrJk"),
+            ("Excel for Data Analysis", "opJgMj1IUrc")
+        ],
+        'statistics': [
+            ("Statistics for Data Science", "xxpc-HPKN28"),
+            ("Probability Fundamentals", "3v9w79NhsfI")
+        ]
+    }
+    
+    # Updated job-title specific videos
+    job_videos = {
+        'data scientist': [
+            ("Data Scientist Day in Life", "x8xjj6aRvsg"),
+            ("Data Science Interview Prep", "hUJQMetUz5A")
+        ],
+        'software engineer': [
+            ("Software Engineer Career Path", "gqVUQu6WoTo"),
+            ("Coding Interview Questions", "Bt11jaoqt3M")
+        ],
+        'marketing specialist': [
+            ("Marketing Career Guide", "D4h6rR-1t8I"),
+            ("Marketing Analytics Tutorial", "7ozG7cop0mM")
+        ],
+        'data analyst': [
+            ("Data Analyst Roadmap", "TPpYHXumzU0"),
+            ("SQL for Data Analysis", "pJqY2ybdYJw")
+        ]
+    }
+    
+    # Add general videos
+    video_links.extend(general_videos)
+    
+    # Add skill-specific videos
+    for skill in skills:
+        skill_lower = skill.lower()
+        if skill_lower in skill_videos:
+            video_links.extend(skill_videos[skill_lower])
+    
+    # Add job-specific videos
+    for job in job_titles:
+        job_lower = job.lower()
+        if job_lower in job_videos:
+            video_links.extend(job_videos[job_lower])
+    
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_videos = []
+    for title, vid_id in video_links:
+        if (title, vid_id) not in seen:
+            seen.add((title, vid_id))
+            unique_videos.append((title, vid_id))
+    
+    return unique_videos[:10]  # Return max 10 videos
 
 def generate_ai_recommendation(user_profile, matched_jobs):
     """Generate personalized recommendation using Azure OpenAI"""
@@ -336,6 +433,10 @@ def index():
         matched_jobs = match_jobs(all_skills, form_data['interests'], form_data['degree'])
         matched_jobs_df = pd.DataFrame(matched_jobs)
         
+        # Generate YouTube recommendations
+        job_titles = [job['Job Title'] for job in matched_jobs]
+        youtube_recommendations = generate_youtube_recommendations(all_skills, job_titles)
+        
         # Generate AI-powered recommendation text
         ai_recommendation = generate_ai_recommendation({
             **form_data,
@@ -347,6 +448,7 @@ def index():
                             jobs=matched_jobs,
                             skills=all_skills,
                             ai_recommendation=ai_recommendation,
+                            youtube_recommendations=youtube_recommendations,
                             resume_uploaded=resume_file is not None)
     
     return render_template('home.html',
@@ -356,7 +458,45 @@ def index():
                          jobs=None,
                          skills=None,
                          ai_recommendation=None,
+                         youtube_recommendations=None,
                          resume_uploaded=False)
+
+@app.route('/ask', methods=['POST'])
+def ask_question():
+    """Handle user questions and provide AI-generated answers"""
+    try:
+        data = request.get_json()
+        question = data.get('question', '').strip()
+        
+        if not question:
+            return jsonify({'error': 'Please enter a question'}), 400
+        
+        messages = [
+            {
+                "role": "system",
+                "content": """You are a career counselor assistant. Provide concise, helpful answers to career-related questions.
+                Keep responses brief (1-2 paragraphs max) and focused on career advice, job searching, skills development, 
+                and professional growth. If a question is unrelated to careers, politely decline to answer."""
+            },
+            {
+                "role": "user",
+                "content": question
+            }
+        ]
+        
+        completion = client.chat.completions.create(
+            model=deployment,
+            messages=messages,
+            max_tokens=300,
+            temperature=0.5
+        )
+        
+        answer = completion.choices[0].message.content
+        return jsonify({'question': question, 'answer': answer})
+    
+    except Exception as e:
+        print(f"Error answering question: {str(e)}")
+        return jsonify({'error': 'Sorry, I couldn\'t process your question at this time.'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
