@@ -57,7 +57,8 @@ CareerDisha bridges the gap between job seekers and recruiters, making career pl
 ---
 
 ## Demo Video 🎥  
-Watch the full demo of CareerDisha here: [Demo Video]([your_demo_video_link](https://youtu.be/flu4rxj8b5s))
+Watch the full demo of CareerDisha here: [Demo Video](https://youtu.be/flu4rxj8b5s)
+
 
 ---
 
