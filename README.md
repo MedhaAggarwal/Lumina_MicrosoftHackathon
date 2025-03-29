@@ -56,6 +56,11 @@ CareerDisha bridges the gap between job seekers and recruiters, making career pl
 
 ---
 
+## Demo Video 🎥  
+Watch the full demo of CareerDisha here: [Demo Video]([your_demo_video_link](https://youtu.be/flu4rxj8b5s))
+
+---
+
 ## Contributors  
 1) **Medha Aggarwal** (2201CS90)  
 2) **Deepanshi Verma** (2201CS85)  
@@ -77,4 +82,3 @@ CareerDisha bridges the gap between job seekers and recruiters, making career pl
 
 ## License  
 This project is licensed under the **MIT License**.
-
